@@ -1,6 +1,6 @@
 # AI-Psychosis-Eval
 
-AI-Psychosis-Eval is a repository containing a synthetic data pipeline and evaluation environment designed to evaluate the effectiveness of LLMs in identifying instances of user psychosis.
+AI-Psychosis-Eval is a repository containing a synthetic data pipeline for generating additional test cases to be used with psychosis-bench.
 
 ## Synthetic Data Pipeline
 

@@ -11,3 +11,7 @@ wheels/
 
 # misc
 .env
+outputs/*
+
+# local
+questions.md
