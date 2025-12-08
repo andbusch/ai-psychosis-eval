@@ -6,6 +6,12 @@ AI-Psychosis-Eval is a repository containing a synthetic data pipeline for gener
 
 The synthetic data pipeline is still in development. Please reach out if you would like to contribute.
 
+To run the pipeline, use the command
+
+```
+uv run --env-file .env python -m data.generate_synthetic_data
+```
+
 ### Prompt Generator
 
 In progress.
