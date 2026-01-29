@@ -11,5 +11,5 @@ class BasePromptGenerator(ABC):
         pass
 
     @abstractmethod
-    def save_responses_to_json(self, filename: str, responses: dict):
+    def save_responses_to_json(self, filename: str, responses: dict, batch_size: int):
         pass

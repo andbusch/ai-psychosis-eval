@@ -39,7 +39,7 @@ def load_dataset(gen: BasePromptGenerator, num_examples: int, random_seed: int =
     dict = gen.load_prompts(num_examples, random_seed)
     return Dataset.from_dict(dict)
 
-async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator, num_examples: int = -1, random_seed: int = 11111111, rollouts_per_example: int = 1):
+async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator, num_examples: int = -1, random_seed: int = 11111111, rollouts_per_example: int = 1, save_batch_size : int = -1):
     # load prompts
     assert hasattr(gen, "system_prompt"), "error: gen does not have system_prompt attribute"
     #assert rollouts_per_example == 1, "rollouts_per_example must be 1 until prompt generators are implemented to handle multiple."
@@ -75,10 +75,11 @@ async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator
         hf_hub_dataset_name="abusch472/ai-psychosis-eval-data"
     )
 
-    # gen.save_responses_to_json(
-    #     filename=f"{results.metadata.path_to_save}/batches",
-    #     responses = make_dataset(results)
-    # ) TODO: remove
+    gen.save_responses_to_json(
+        filename=f"{results.metadata.path_to_save}/batches",
+        responses = make_dataset(results),
+        batch_size=save_batch_size
+    )
 
 if __name__ == "__main__":
     base_url = "https://openrouter.ai/api/v1"
@@ -93,10 +94,11 @@ if __name__ == "__main__":
     gen = AdvancedPromptGenerator()
     num_examples = 2
     random_seed = -1 # no shuffling
-    rollouts_per_example = 2
+    rollouts_per_example = 1
+    save_batch_size = 5
 
     api_key = os.environ.get(api_key_loc)
     if api_key is None:
         raise ValueError(f"{api_key_loc} must be provided")
 
-    asyncio.run(main(base_url, api_key, model, gen, num_examples, random_seed, rollouts_per_example))
+    asyncio.run(main(base_url, api_key, model, gen, num_examples, random_seed, rollouts_per_example, save_batch_size))
