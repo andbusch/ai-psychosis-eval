@@ -12,6 +12,8 @@ wheels/
 # misc
 .env
 outputs/*
+.DS_Store
+
 
 # local
 questions.md
@@ -19,3 +21,4 @@ notes.md
 
 # claude
 CLAUDE.md
+
