@@ -4,8 +4,8 @@ import yaml
 from pathlib import Path
 from datasets import Dataset
 from unittest.mock import patch, mock_open
-from data.prompt_generator import PromptGenerator
-from data.prompt_generator import BasePromptGenerator
+from data.prompt_generator.prompt_generator import PromptGenerator
+from data.prompt_generator.prompt_generator import BasePromptGenerator
 
 @pytest.fixture
 def generator_instance():
@@ -17,7 +17,6 @@ def generator_instance():
     # We mock the open() call and yaml.safe_load so __init__ passes without error
     with patch("builtins.open", mock_open(read_data="themes: []")), \
         patch("yaml.safe_load", return_value={"themes": [], "harms": [], "system_prompt": ""}):
-        
         generator = PromptGenerator()
         return generator
 

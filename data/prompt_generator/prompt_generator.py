@@ -22,7 +22,7 @@ class PromptGenerator(BasePromptGenerator):
 
     def __init__(self):
         """uses a random init value to initialize prompt characteristics"""
-        with open("data/prompt_config.yaml") as f:
+        with open("data/prompt_generator/prompt_config.yaml") as f:
             self._loaded_yaml = yaml.safe_load(f)
 
         self.system_prompt = self._loaded_yaml.get("system_prompt", "")
