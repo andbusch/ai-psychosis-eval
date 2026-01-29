@@ -76,7 +76,7 @@ async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator
     )
 
     # gen.save_responses_to_json(
-    #     filename=f"{results.metadata.path_to_save}/psychosis-eval-formatted.json",
+    #     filename=f"{results.metadata.path_to_save}/batches",
     #     responses = make_dataset(results)
     # ) TODO: remove
 

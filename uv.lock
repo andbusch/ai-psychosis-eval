@@ -583,12 +583,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pytest" },
+    { name = "pyyaml" },
     { name = "verifiers" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "verifiers", specifier = ">=0.1.7.post0" },
 ]
 

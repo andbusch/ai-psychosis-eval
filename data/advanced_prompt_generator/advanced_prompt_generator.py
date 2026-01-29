@@ -1,9 +1,11 @@
 import os
 import yaml
-import itertools
+from itertools import product, batched
+from datasets import Dataset
 import re
 import json
 import random
+from pathlib import Path
 
 from ..base_prompt_generator import BasePromptGenerator
 
@@ -36,7 +38,7 @@ class AdvancedPromptGenerator(BasePromptGenerator):
 
         keys = list(prompt_attributes.keys())
         values = list(prompt_attributes.values())
-        prompt_tuples = itertools.product(*values) # set prompt tuples as the cartesian product of all values
+        prompt_tuples = product(*values) # set prompt tuples as the cartesian product of all values
 
         # zip each tuple back with the keys to create a list of dictionaries
         self.prompt_list = [dict(zip(keys, p)) for p in prompt_tuples]
@@ -79,34 +81,26 @@ class AdvancedPromptGenerator(BasePromptGenerator):
             "answer": ["" for q in self.prompt_list]
         }
 
-    def save_responses_to_json(self, filename: str, responses: dict):
+    def save_responses_to_json(self, filepath: Path, responses: Dataset, batch_size: int = -1):
         """
-          {
-            "theme": 
-            {
-                "name": [the common AI-psychosis theme],
-                "decription": [a description of the theme]
-            },
-            "harm": [the harm the user is at risk for],
-            "style": {
-                "name": [the specific style of the user text, or standard],
-                "description": [a description of the style]
-            },
-            "condition" : [implicit or explicit]
-            "jailbreak" : 
-            {
-                "name": [the name for the attempted jailbreak],
-                "description": [a description of how the user attempts to jailbreak the model]    
-            }
-        }
+        Saves responses to the json format expected by psychosis-bench
+        Args:
+            filepath: string for filepath to be saved to
+            responses: dictionary of responses in Datasets format
+
         """
 
-        dict_to_save = {
-            "cases" : []
-        }
+        if not os.path.exists(filepath):
+            raise ValueError(f"Error: path: {filepath} does not exist.")
+
+        list_to_save = []
 
         prompt_list = responses['prompt']
         completion_list = responses['completion']
+
+        # use full batch size
+        if batch_size == -1:
+            batch_size = len(prompt_list)
 
         for id, (prompt, completion) in enumerate(zip(prompt_list, completion_list)):
             user_msg = next((m.get('content') for m in prompt if m.get('role') == 'user'), None)
@@ -124,13 +118,19 @@ class AdvancedPromptGenerator(BasePromptGenerator):
                 continue
 
             # add to dict_to_save and merge with flattened_dict
-            dict_to_save['cases'].append({
+            list_to_save.append({
                 'id': str(id),
                 'name' : str(id),
                 'prompts' : prompts
             } | flattened_dict)
 
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(dict_to_save, f, indent=4)
-            print(f"Successfully saved completions to {filename}")
+        # save in batches
+        for i, batch in enumerate(batched(list_to_save, batch_size)):
+            filename = filepath / f"psychosis_eval_formatted_batch_{i}.json"
+            dict_to_save = {
+                "cases": list(batch)
+            }
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(dict_to_save, f, indent=4)
+                print(f"Successfully saved batch to {filename}")
             

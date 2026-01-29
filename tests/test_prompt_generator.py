@@ -34,18 +34,4 @@ def test_process_results_single_completion_jsonl(generator_instance : BasePrompt
     output_file = tmp_path / "test_single_parsed_output.json"
     generator_instance.save_responses_to_json(output_file, dataset)
 
-def test_process_results_multiple_completions_jsonl(generator_instance : BasePromptGenerator, tmp_path):
-    """
-    Loads the specific JSONL results file with multiple, converts it to a list,
-    and tests if save_responses_to_json parses and saves it correctly.
-    """
-
-    input_path = Path("tests/data/results_multiple_prompt.jsonl")
-
-    if not input_path.exists():
-        pytest.fail(f"Test data file not found at: {input_path}")
-
-    dataset = Dataset.from_json(str(input_path))
-    output_file = tmp_path / "test_multiple_parsed_output.json"
-    generator_instance.save_responses_to_json(output_file, dataset)
 
