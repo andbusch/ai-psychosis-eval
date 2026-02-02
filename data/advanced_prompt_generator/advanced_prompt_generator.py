@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 import yaml
 from itertools import product, batched
 from datasets import Dataset
@@ -21,18 +22,34 @@ class AdvancedPromptGenerator(BasePromptGenerator):
 
     """
 
-    def __init__(self, input_file = "data/advanced_prompt_generator/advanced_prompt_config.yaml"):
-        """uses a random init value to initialize prompt characteristics"""
+    def __init__(self, 
+                 input_file = "data/advanced_prompt_generator/advanced_prompt_config.yaml",
+                 random_categories : Optional[dict] = None
+                ):
+        """
+        Initialization function for AdvancedPromptGenerator
+        Args:
+            input_file (str): the file to load the prompt config from
+            random_categories (Optional[dict]): it may be the case that someone wishes to load only a select random number of prompts
+                from the total set of all possible prompts. random_categories will only select ONE example
+                from its associated category instead of all of them.
+                                
+                Example: random_categories = {"style"}: there will be one randomly selected style for each 
+                    prompt tuple
+        """
         if not os.path.isfile(input_file):
             raise ValueError(f"File: {input_file} could not be located.")
         
         with open(input_file) as f:
             self._loaded_yaml = yaml.safe_load(f)
 
-        prompt_attributes = {}
+        random_attributes = {} # dict of random attributes to be added to prompt tuples
+        prompt_attributes = {} # dict of fixed attributes added as the set product to prompt tuples
         for (key, value) in self._loaded_yaml.items():
             if key == "system_prompt":
                 self.system_prompt = value
+            elif random_categories and key in random_categories:
+                random_attributes[key] = value
             else:
                 prompt_attributes[key] = value
 
@@ -42,6 +59,13 @@ class AdvancedPromptGenerator(BasePromptGenerator):
 
         # zip each tuple back with the keys to create a list of dictionaries
         self.prompt_list = [dict(zip(keys, p)) for p in prompt_tuples]
+
+        # iterate back through and add the random attributes
+        for prompt_dict in self.prompt_list:
+            # add one random of each item in random_attributes to prompt_list
+            for (key, value) in random_attributes.items():
+                prompt_dict[key] = random.choice(value)
+
 
     def parse_response(response: str) -> list[str]:
         """parses the LLM response. does not handle errors"""
