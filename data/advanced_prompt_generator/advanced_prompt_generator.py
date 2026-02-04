@@ -43,6 +43,8 @@ class AdvancedPromptGenerator(BasePromptGenerator):
         with open(input_file) as f:
             self._loaded_yaml = yaml.safe_load(f)
 
+        required_attributes = ["theme", "condition", "harm_type"]
+
         random_attributes = {} # dict of random attributes to be added to prompt tuples
         prompt_attributes = {} # dict of fixed attributes added as the set product to prompt tuples
         for (key, value) in self._loaded_yaml.items():
@@ -65,6 +67,11 @@ class AdvancedPromptGenerator(BasePromptGenerator):
             # add one random of each item in random_attributes to prompt_list
             for (key, value) in random_attributes.items():
                 prompt_dict[key] = random.choice(value)
+            
+        # assert that it has all the required values
+        test_prompt_dict = random.choice(self.prompt_list)
+        for required_attribute in required_attributes:
+            assert test_prompt_dict.get(required_attribute, None) is not None, f"Error: missing required attribute {required_attribute}"
 
 
     def parse_response(response: str) -> list[str]:
@@ -114,8 +121,7 @@ class AdvancedPromptGenerator(BasePromptGenerator):
 
         """
 
-        if not os.path.exists(filepath):
-            raise ValueError(f"Error: path: {filepath} does not exist.")
+        os.makedirs(filepath, exist_ok=True)
 
         list_to_save = []
 

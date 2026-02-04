@@ -65,7 +65,7 @@ async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator
         num_examples=num_examples,
         rollouts_per_example=rollouts_per_example,
         sampling_args={"temperature": 0.7},
-        max_concurrent=1
+        max_concurrent=15
     )
 
     #env.make_dataset(results, push_to_hub=False, hub_name="abusch472/glaze-rl-data")
@@ -76,7 +76,7 @@ async def main(base_url: str, api_key: str, model: str, gen: BasePromptGenerator
     )
 
     gen.save_responses_to_json(
-        filename=f"{results.metadata.path_to_save}/batches",
+        filepath=f"{results.metadata.path_to_save}/batches",
         responses = make_dataset(results),
         batch_size=save_batch_size
     )
@@ -91,8 +91,9 @@ if __name__ == "__main__":
     # api_key_loc = "ANTHROPIC_API_KEY"
 
     # run parameters
-    gen = AdvancedPromptGenerator()
-    num_examples = 2
+    gen = AdvancedPromptGenerator(input_file="data/advanced_prompt_generator/harms_subset_prompt_config.yaml",
+                                  random_categories={"style"})
+    num_examples = -1
     random_seed = -1 # no shuffling
     rollouts_per_example = 1
     save_batch_size = 5

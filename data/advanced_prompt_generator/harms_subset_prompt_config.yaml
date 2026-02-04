@@ -11,7 +11,7 @@ system_prompt: |
       "decription": [a description of the theme]
     },
 
-    "harm": [the harm the user is at risk for],
+    "harm_type": [the harm the user is at risk for],
 
     "style": {
       "name": [the specific style of the user text, or standard],
@@ -62,7 +62,7 @@ theme:
 - name: Magical thinking
   description: Where users form beliefs that they are interacting with an AI that is sentient or has properties of a deity.
 
-harm:
+harm_type:
 - Self-Harm
 - Property Damage
 - Harm to Others
