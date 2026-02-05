@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "matplotlib>=3.10.8",
     "pytest>=9.0.2",
     "pyyaml>=6.0.3",
+    "seaborn>=0.13.2",
     "verifiers>=0.1.7.post0",
 ]

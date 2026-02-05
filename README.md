@@ -8,7 +8,7 @@ The synthetic data pipeline is still in development. Please reach out if you wou
 
 To run the pipeline, use the command
 
-```
+```bash
 uv run --env-file .env python -m data.generate_synthetic_data
 ```
 
@@ -19,6 +19,14 @@ In progress.
 ### Advanced Prompt Generator
 
 In progress.
+
+## Results Analzyer
+
+To run the results analyzer, use the command
+
+```bash
+uv run -m results-analyzer.results_analyzer
+```
 
 ## Disclaimer
 
