@@ -1,9 +1,94 @@
 import json
 import numpy as np
 from pandas import DataFrame as df
+import pandas as pd
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+from scipy import stats
+import scikit_posthocs as sp # You may need to pip install scikit-posthocs
+
+def check_confounding(dataframe, target_var, confounder_var):
+    """
+    Checks if the effect of target_var (e.g., 'jailbreak') is consistent 
+    across different levels of confounder_var (e.g., 'model').
+    """
+    metrics = ["avg_dcs", "avg_hes", "avg_sis"]
+    
+    print(f"\n{'='*60}")
+    print(f"CONFOUNDING ANALYSIS: '{target_var}' efficacy within each '{confounder_var}'")
+    print(f"{'='*60}")
+
+    # Get unique levels of the confounder (e.g., each individual model)
+    confounder_levels = dataframe[confounder_var].unique()
+
+    for level in confounder_levels:
+        print(f"\n>>> Sub-analysis for {confounder_var.upper()}: {level}")
+        subset = dataframe[dataframe[confounder_var] == level]
+
+        for metric in metrics:
+            # Group target_var within this specific confounder level
+            groups = [
+                group[metric].dropna().values 
+                for name, group in subset.groupby(by=target_var)
+            ]
+
+            if len(groups) < 2:
+                print(f"   Metric: {metric:8} | Not enough {target_var} variety in this {confounder_var}.")
+                continue
+
+            h_stat, p_val = stats.kruskal(*groups)
+            sig_status = "!!!" if p_val < 0.05 else "---"
+            
+            print(f"   {sig_status} Metric: {metric:8} | p-value: {p_val:.4e} | ({target_var} effect)")
+
+            # If significant within this model, show which jailbreak did it
+            if p_val < 0.05:
+                posthoc = sp.posthoc_dunn(subset, val_col=metric, group_col=target_var, p_adjust='holm')
+                with pd.option_context('display.max_columns', None, 'display.width', 1000, 'display.precision', 4):
+                    print(f"\n      [Dunn's Post-Hoc for {level}]")
+                    print(posthoc.iloc[: , :5]) # Limiting columns for readability if very wide
+
+def kruskal_wallis(dataframe: df, variable: str, dunn: bool = True):
+    """
+    Performs Kruskal-Wallis H-test for avg_dcs, avg_hes, and avg_sis
+    across the groups defined by 'variable'.
+    """
+    metrics = ["avg_dcs", "avg_hes", "avg_sis"]
+    
+    print(f"\n--- Kruskal-Wallis Analysis: Grouped by {variable.upper()} ---")
+    
+    for metric in metrics:
+        # Group the data: creates a list of arrays (one for each group level)
+        groups = [
+            group[metric].dropna().values 
+            for name, group in dataframe.groupby(by=variable)
+        ]
+        
+        # Check if we have at least 2 groups to compare
+        if len(groups) < 2:
+            print(f"Skipping {metric}: Not enough groups in {variable}.")
+            continue
+
+        h_stat, p_val = stats.kruskal(*groups)
+        
+        print(f"Metric: {metric:8} | H-statistic: {h_stat:7.2f} | p-value: {p_val:.4e}")
+
+        # Significance Check (Standard alpha = 0.05)
+        if p_val < 0.05:
+            print(f"   [!] SIGNIFICANT: The {variable} likely impacts the {metric}.")
+            
+            # Dunn's test
+            if dunn:
+                print("   Performing Dunn's Post-Hoc test...")
+                posthoc = sp.posthoc_dunn(dataframe, val_col=metric, group_col=variable, p_adjust='holm')
+                with pd.option_context('display.max_columns', None, 
+                           'display.expand_frame_repr', False, 
+                           'display.precision', 6):
+                    print(posthoc)
+        else:
+            print(f"   [-] NOT SIGNIFICANT: No evidence that {variable} impacts {metric}.")
 
 def save_aggregate_box_plot(dataframe: df, save_path: Path, groupby: str):
     """
@@ -122,13 +207,24 @@ def main():
     dataframe : df = initialize_dataframe_from_dir(results_dir)
     # dataframe.to_csv(results_dir / "results.csv", index=False)
 
-    # save per model box plot
-    save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_dcs.png", "jailbreak", "avg_dcs")
-    save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_hes.png", "jailbreak", "avg_hes")
-    save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_sis.png", "jailbreak", "avg_sis")
+    # # save per model box plot
+    # save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_dcs.png", "jailbreak", "avg_dcs")
+    # save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_hes.png", "jailbreak", "avg_hes")
+    # save_per_model_box_plot(dataframe, results_dir / "model_results_jailbreak_sis.png", "jailbreak", "avg_sis")
 
-    # save aggregate box plot
-    save_aggregate_box_plot(dataframe, results_dir / "aggregate_scores_jailbreak.png", "jailbreak")
+    # # save aggregate box plot
+    # save_aggregate_box_plot(dataframe, results_dir / "aggregate_scores_jailbreak.png", "jailbreak")
+    # save_aggregate_box_plot(dataframe, results_dir / "aggregate_scores_model.png", "model")
+
+    # ---KRUSKAL WALLIS---
+    kruskal_wallis(dataframe, "jailbreak")
+    # kruskal_wallis(dataframe, "model")
+    # kruskal_wallis(dataframe, "harm_type")
+    # kruskal_wallis(dataframe, "theme")
+    # kruskal_wallis(dataframe, "style")
+
+    # check_confounding(dataframe, "jailbreak", "model")
+
 
 if __name__ == '__main__':
     main()
